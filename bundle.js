@@ -46,7 +46,7 @@
 
 	var React = __webpack_require__(1),
 	    ReactDOM = __webpack_require__(158),
-	    WeatherClock = __webpack_require__(159);
+	    Autocomplete = __webpack_require__(159);
 	
 	var MyComponent = React.createClass({
 	  displayName: 'MyComponent',
@@ -62,7 +62,7 @@
 	
 	document.addEventListener("DOMContentLoaded", function () {
 	  ReactDOM.render(React.createElement(MyComponent, null), document.getElementById('swiggity_swooty'));
-	  ReactDOM.render(React.createElement(WeatherClock, null), document.getElementById('main'));
+	  ReactDOM.render(React.createElement(Autocomplete, null), document.getElementById('main'));
 	});
 
 /***/ },
@@ -19670,128 +19670,61 @@
 /* 159 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var React = __webpack_require__(1),
-	    Clock = __webpack_require__(160),
-	    Weather = __webpack_require__(161);
+	var React = __webpack_require__(1);
 	
-	var WeatherClock = React.createClass({
-	  displayName: 'WeatherClock',
+	var Autocomplete = React.createClass({
+	  displayName: 'Autocomplete',
+	
+	  getInitialState: function () {
+	    return { value: '',
+	      inputWords: ["Blackbeard", "Blackbread", "Sparrow", "Redbread", "Breadbeard", "potato"],
+	      matches: [] };
+	  },
+	
+	  handleChange: function (text) {
+	    var re = new RegExp("^(" + text + ").+");
+	    var matches = [];
+	    this.state.inputWords.map(function (hereMatches, word) {
+	      if (re.test(word)) {
+	        hereMatches.push(word);
+	      }
+	    }.bind(this, matches));
+	    this.setState({ value: text, matches: matches });
+	  },
+	
+	  typeUpdate: function (event) {
+	    this.handleChange(event.target.value);
+	  },
+	
+	  completeCallback: function (event) {
+	    this.handleChange(event.target.innerHTML);
+	  },
 	
 	  render: function () {
 	    return React.createElement(
 	      'div',
-	      { className: 'wc-container' },
-	      React.createElement(Clock, { className: 'clock' }),
-	      React.createElement(Weather, { className: 'weather-container' })
-	    );
-	  }
-	
-	});
-	
-	module.exports = WeatherClock;
-
-/***/ },
-/* 160 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var React = __webpack_require__(1);
-	
-	var Clock = React.createClass({
-	  displayName: 'Clock',
-	
-	  getInitialState: function () {
-	    return { time: new Date() };
-	  },
-	
-	  tick: function () {
-	    var d = this.state.time;
-	    d.setSeconds(d.getSeconds() + 1);
-	    this.setState({ time: d });
-	  },
-	
-	  componentDidMount: function () {
-	    setInterval(this.tick, 1000);
-	  },
-	
-	  render: function () {
-	    return React.createElement(
-	      'article',
 	      null,
-	      this.state.time.toTimeString().slice(0, 8)
+	      React.createElement('input', {
+	        type: 'text',
+	        value: this.state.value,
+	        onChange: this.typeUpdate
+	      }),
+	      React.createElement(
+	        'ul',
+	        null,
+	        this.state.matches.map(function (match, ind) {
+	          return React.createElement(
+	            'li',
+	            { key: ind, onClick: this.completeCallback },
+	            match
+	          );
+	        }.bind(this))
+	      )
 	    );
 	  }
 	});
 	
-	module.exports = Clock;
-
-/***/ },
-/* 161 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var React = __webpack_require__(1);
-	
-	var Weather = React.createClass({
-	  displayName: "Weather",
-	
-	  getInitialState: function () {
-	    return { weather: "Loading..." };
-	  },
-	
-	  componentDidMount: function () {
-	    navigator.geolocation.getCurrentPosition(this.pollWeather);
-	  },
-	
-	  pollWeather: function (location) {
-	    var lat = location.coords.latitude;
-	    var long = location.coords.longitude;
-	    var url = "http://api.openweathermap.org/data/2.5/weather?";
-	    url += "lat=" + lat.toString() + "&lon=" + long.toString();
-	    url += "&APPID=645c5d39c7603f17e23fcaffcea1a3c1";
-	
-	    var xmlhttp = new XMLHttpRequest();
-	    var that = this;
-	    xmlhttp.onreadystatechange = function () {
-	      //ready state of Done means this is complete
-	      if (xmlhttp.status == 200 && xmlhttp.readyState == XMLHttpRequest.DONE) {
-	
-	        var data = JSON.parse(xmlhttp.responseText);
-	        that.setState({ weather: data });
-	      }
-	    };
-	
-	    xmlhttp.open("GET", url, true);
-	    xmlhttp.send();
-	  },
-	
-	  render: function () {
-	    if (this.state.weather === "Loading...") {
-	      return React.createElement(
-	        "p",
-	        null,
-	        "Loading ..."
-	      );
-	    } else {
-	      var realTemp = (this.state.weather.main.temp - 273.15) * 1.8 + 32;
-	      return React.createElement(
-	        "div",
-	        { className: "weather-container" },
-	        React.createElement(
-	          "article",
-	          null,
-	          this.state.weather.weather[0].description
-	        ),
-	        React.createElement(
-	          "article",
-	          null,
-	          Math.floor(realTemp),
-	          " ºF"
-	        )
-	      );
-	    }
-	  }
-	});
-	
-	module.exports = Weather;
+	module.exports = Autocomplete;
 
 /***/ }
 /******/ ]);
